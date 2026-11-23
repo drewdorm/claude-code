@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --color-leaf-50: #f1f6ee;
+  --color-leaf-100: #dfeccf;
+  --color-leaf-200: #c3dcaa;
+  --color-leaf-500: #4f8a52;
+  --color-leaf-600: #3b7a45;
+  --color-leaf-700: #2f6b3a;
+  --color-leaf-800: #24532d;
+  --color-soil-100: #f2e9df;
+  --color-soil-600: #8a5a3b;
+  --color-paper: #f6f7f2;
+}
+
+html {
+  color-scheme: light;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  background: var(--color-paper);
+  color: #1c2a1f;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overscroll-behavior-y: none;
+}
+/* iOS zooms into inputs below 16px; keep them at 16px. */
+input, select, textarea { font-size: 16px; }

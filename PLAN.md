@@ -2,7 +2,7 @@
 
 A mobile-friendly web app for managing a home garden in Marietta, Georgia (Cobb County).
 
-> Status: **planning only**. No app code yet. Most open questions are answered (see [Decisions](#7-decisions-made)). A few small ones remain in [Open questions](#8-open-questions).
+> Status: **Phase 1 (phone-only test version) built.** See README.md for install steps. Most open questions are answered (see [Decisions](#7-decisions-made)). A few small ones remain in [Open questions](#8-open-questions).
 
 ## Who uses it
 

@@ -2,7 +2,25 @@
 
 A mobile-friendly web app for managing a home garden in Marietta, Georgia (Cobb County).
 
-> Status: **planning only**. No app code yet. See [Open questions](#7-open-questions) before building.
+> Status: **planning only**. No app code yet. Most open questions are answered (see [Decisions](#7-decisions-made)). A few small ones remain in [Open questions](#8-open-questions).
+
+## Who uses it
+
+Two people share **one garden** and can both view and edit everything. Sign-up is invite-only, so only those two email addresses can log in. Every photo, note, and stage change records who made it.
+
+## The garden (pre-loaded at setup)
+
+| Count | Name pattern | Type | Size | Area each |
+|---|---|---|---|---|
+| 4 | Raised Bed 1–4 | Raised bed | 6 ft × 3 ft, 1 ft deep | 18 sq ft |
+| 4 | Raised Bed 5–8 | Raised bed | 6 ft × 3 ft, 2 ft deep | 18 sq ft |
+| 6 | Round Bed 1–6 | Round container | 2 ft diameter, 2 ft tall | ~3.1 sq ft |
+| 1 | In-Ground Plot | In-ground | 10 ft × 30 ft | 300 sq ft |
+| 4 | Wall Bed 1–4 | Retaining-wall bed | 5 ft × 20 ft | 100 sq ft |
+
+That's **19 growing spaces and about 860 sq ft** in total. You can rename any of them, for example "Raised Bed 3 – by the fence".
+
+The 2-ft-deep raised beds and the round containers suit deep-rooted or perennial crops (tomatoes, blueberries, which need acidic soil and fit well in a container). The app won't enforce this, but tips can mention it.
 
 ---
 
@@ -36,20 +54,21 @@ These are stored as **editable settings** so the whole calendar moves if you cha
 3. **Bed / area detail**: size, sun exposure, current plantings, past seasons (to help with crop rotation), and a photo timeline.
 4. **Planting detail**: crop and variety, key dates (seeded, transplanted, expected harvest), current stage with a progress bar, tips for that stage, the next suggested step, photos, and notes.
 5. **Calendar**: month view or list of what to start, transplant, and harvest, built from frost dates and your plantings. You can filter by crop or bed.
-6. **Crop library**: the crop list (tomato, pepper, cucumber, squash, corn, beans, herbs, flowers, blueberry) with timing rules and tips for each stage. You can edit it and add crops.
-7. **Add photo**: take or upload a photo, tag it to a planting or bed, and add an optional note. In later phases, this shows the AI's stage suggestion for you to confirm.
-8. **Settings**: frost dates, zone, units (ft/in), and your account.
+6. **Seed-starting shelf**: seedlings growing indoors that haven't gone into a bed yet, with their sow date and target transplant date. A "Transplant" button asks which bed they're going into.
+7. **Crop library**: the crop list (tomato, pepper, cucumber, squash, corn, beans, herbs, flowers, blueberry) with timing rules and tips for each stage. You can edit it and add crops.
+8. **Add photo**: take or upload a photo, tag it to a planting or bed, and add an optional note. In later phases, this shows the AI's stage suggestion for you to confirm.
+9. **Settings**: frost dates, zone, units (ft/in), and the two user accounts.
 
 ---
 
 ## 3. Data model
 
-Plain-language version: a **Bed** holds many **Plantings** over time. Each Planting is one **Crop** (from the library) and moves through **Stages**. **Photos** attach to a Planting or a Bed. **Tips** belong to a Crop and Stage. **Tasks** are generated from all of this.
+Plain-language version: a **Bed** holds many **Plantings** over time. Each Planting is one **Variety** of a **Crop** (from the library) and moves through **Stages**. **Photos** attach to a Planting or a Bed. **Tips** belong to a Crop and Stage. **Tasks** are generated from all of this.
 
 ```
 Garden settings ─┐
                  │
-Bed/Area 1 ── * Planting * ── 1 Crop 1 ── * StageTip
+Bed/Area 1 ── * Planting * ── 1 Variety * ── 1 Crop 1 ── * StageTip
    │                │
    * Photo          * Photo
                     * Task
@@ -61,10 +80,15 @@ Bed/Area 1 ── * Planting * ── 1 Crop 1 ── * StageTip
 **garden_settings** (one row)
 - `zone`, `last_frost_date`, `first_frost_date`, `units`
 
+**profiles** (the two users)
+- `id`, `display_name`, `email`
+- Photos, stage events, tasks and notes carry a `created_by` that points here.
+
 **beds**
-- `id`, `name` (e.g. "Bed 1 – North")
-- `type`: `raised_bed` | `in_ground` | `container`
-- `length`, `width` (and optional `depth` for raised beds)
+- `id`, `name` (e.g. "Raised Bed 1")
+- `type`: `raised_bed` | `in_ground` | `container` | `wall_bed`
+- `shape`: `rect` | `round`
+- `length_ft`, `width_ft` for rectangles, or `diameter_ft` for round beds, plus `depth_ft`
 - `sun`: `full` | `partial` | `shade`
 - `notes`, `cover_photo_id`, `archived`
 
@@ -77,15 +101,24 @@ Bed/Area 1 ── * Planting * ── 1 Crop 1 ── * StageTip
   - `direct_sow_offset` (e.g. beans: +7)
   - `days_to_maturity` (default; can be changed per variety)
   - `fall_planting_ok`, `spacing_in`
+  - **Fall planting** is counted backward from the first fall frost: last sow date = first frost − (days to maturity + ~14 days, because plants grow more slowly as days shorten). Example: bush beans (55 days) should be sown by about August 23 for a November 1 frost.
 - `stages`: the ordered list of stages for this crop (see below)
+
+**varieties** (specific cultivars, e.g. "Sungold", "Cherokee Purple", "Silver Queen")
+- `id`, `crop_id`, `name`
+- `days_to_maturity` (overrides the crop default)
+- `growth_habit` (e.g. determinate or indeterminate for tomatoes, bush or pole for beans)
+- `seed_source`, `notes`, `photo_id`
+- Optional timing overrides (`start_indoors_offset`, `transplant_offset`), for when a variety differs from the crop default
 
 **stage_tips**
 - `crop_id`, `stage`, `title`, `body`, `what_to_look_for` (visual cues that a later phase can use for photo checks)
 
-**plantings** (one crop in one bed for one season)
-- `id`, `bed_id`, `crop_id`, `variety` ("Cherokee Purple")
+**plantings** (one variety in one bed for one season)
+- `id`, `bed_id` (**left empty while seedlings are still in trays indoors**, then set at transplant), `crop_id`, `variety_id`
+- `season`: `spring` | `summer` | `fall`, and `year`
 - `quantity` / `area_used`
-- `method`: `seed_indoors` | `direct_sow` | `transplant_bought`
+- `method`: `seed_indoors` | `direct_sow` | `transplant_bought` (you use all three)
 - Dates: `seeded_on`, `transplanted_on`, `first_harvest_on`, `ended_on`
 - `current_stage`, `stage_source`: `manual` | `date_estimate` | `photo_ai`
 - `status`: `planned` | `active` | `done` | `failed`
@@ -143,16 +176,16 @@ Chosen to be beginner-friendly, low-cost (free tiers cover a single home gardene
 
 ### Phase 1 (MVP): "What's planted where"
 Goal: replace the notebook or spreadsheet. Use it for one season.
-- Login (just you).
-- Create, edit, and archive beds and areas (name, type, size, sun).
-- Add plantings to a bed (crop, variety, dates, stage set by hand, notes).
-- Pre-filled crop library with your 9 crop types.
+- Invite-only login for the two users.
+- The 19 beds and areas above, pre-loaded, with editing and archiving.
+- Pre-filled crop library with your 9 crop types, and a place to add your varieties.
+- Add plantings (variety, method, season, dates, stage set by hand, notes), including seedlings indoors that don't have a bed yet.
 - Upload photos to a planting or bed, shown as a simple timeline.
 - Phone-first layout, installable as a PWA.
 
 ### Phase 2: Calendar and tips
 - Frost-date settings.
-- Calendar built from crop timing rules (spring and fall windows).
+- Calendar built from crop and variety timing rules (spring windows, plus fall windows counted back from first frost).
 - "Today" screen with upcoming tasks.
 - Stage tips on each planting.
 - Date-based stage estimates and one-tap stage confirmation.
@@ -168,24 +201,29 @@ Goal: replace the notebook or spreadsheet. Use it for one season.
 - Weather and frost alerts (e.g. from the National Weather Service API).
 - Harvest log (weights and counts) with season summaries.
 - Push or email reminders.
-- Share read-only access with family.
 
 ---
 
-## 7. Open questions
+## 7. Decisions made
 
-Please answer these before building starts:
+| Topic | Decision |
+|---|---|
+| Users | Two people share one garden, and both can edit. Login is invite-only. |
+| Beds | 19 spaces, pre-loaded (see the table at the top). |
+| Varieties | Tracked per planting, each with its own days to maturity and timing. |
+| Seed starting | Both indoor starts and bought transplants. Seedlings can exist before they have a bed. |
+| Fall garden | Yes. The calendar adds fall sowing windows. |
+| Offline use | Not needed, because signal is reliable. This keeps the app simpler. |
+| Tips | Starter tips will be written from general Southeast / UGA Extension guidance, and you can edit them. |
+| Photo AI | Planned for Phase 3, using the default setup in the tech stack. The cost should be pennies a month, and a cheaper model can be swapped in if you want. |
+| Approach | Personal use, so the most efficient choice wins: one shared garden, no multi-tenant features, free tiers, and no app-store builds. |
 
-1. **Users:** Is it just you, or will family members log in and edit too?
-2. **Frost dates:** Are you OK with ~April 1 and ~November 1 as defaults, or do you have dates from your own experience?
-3. **Bed list:** Can you list your beds and areas with rough sizes? I'll pre-load them.
-4. **Bed layout:** Is a simple list of what's in each bed enough, or do you want to place plants on a grid/map (Phase 4)?
-5. **Crop detail:** Should the app track varieties (e.g. "Cherokee Purple" vs. "Sungold") with their own days-to-maturity, or just crop types?
-6. **Seed starting:** Do you start seeds indoors, buy transplants, or both? It changes which tasks appear.
-7. **Fall garden:** Do you plant a second round in late summer (beans, squash, cucumbers)?
-8. **Tips source:** Is it OK if I write the starter tips based on general Southeast/UGA Extension guidance? You'd be able to edit them.
-9. **AI photo analysis:** Are you comfortable with photos being sent to an outside AI service (Anthropic) for analysis, and with a small pay-per-use cost? Roughly how many photos a week do you expect?
-10. **Accounts:** Are you OK creating free accounts on GitHub, Supabase, and Vercel? I'll walk you through each step.
-11. **Offline use:** Is phone signal reliable in your garden, or does the app need to save entries offline and sync later?
-12. **Reminders:** Do you want notifications (push or email), or is checking the "Today" screen enough?
-13. **Past data:** Do you have past records (spreadsheet, notes, photos) to import?
+## 8. Open questions
+
+These don't block starting Phase 1, and sensible defaults are used until you answer:
+
+1. **Frost dates:** OK to start with ~April 1 (last spring frost) and ~November 1 (first fall frost)? Default: yes. You can change them in Settings.
+2. **Reminders:** Do you want push notifications, or is the "Today" screen enough? Default: Today screen only, with reminders in Phase 4.
+3. **Past data:** Is there any old spreadsheet or photo history to import? Default: start fresh.
+4. **Bed names:** Do you want real names (e.g. "Wall Bed – Top Tier") instead of numbers? Default: numbered names, which you can rename any time.
+5. **Accounts:** You'll need free GitHub, Supabase, and Vercel accounts. I'll walk you through each when we start building.

@@ -6,7 +6,7 @@ A mobile-friendly web app for managing a home garden in Marietta, Georgia (Cobb 
 
 ## Who uses it
 
-Two people share **one garden** and can both view and edit everything. Sign-up is invite-only, so only those two email addresses can log in. Every photo, note, and stage change records who made it.
+Test version (Phase 1): just you, on your phone. Shared version (from Phase 1.5): two people share **one garden** and can both view and edit everything. Sign-up is invite-only, so only those two email addresses can log in. Every photo, note, and stage change records who made it.
 
 ## The garden (pre-loaded at setup)
 
@@ -161,10 +161,11 @@ Chosen to be beginner-friendly, low-cost (free tiers cover a single home gardene
 | Piece | Choice | Why, in plain language |
 |---|---|---|
 | Language | **TypeScript** | JavaScript with type checks that catch mistakes before you run the code. Front end and back end use the same language. |
-| App framework | **Next.js** (React) | A popular, well-documented way to build one web app that has both the screens and the small server code. Tutorials and help are easy to find. |
+| App framework | **React + Vite** | React is the most popular way to build app screens. Vite is the tool that runs and packages it. Together they produce a plain website with no server needed, which is the simplest thing to host. |
 | Styling | **Tailwind CSS** | Lets you style elements directly in the markup. It makes phone-first layouts easy without writing separate CSS files. |
-| Database, login, photo storage | **Supabase** | One hosted service that provides a Postgres database, user login, and file storage for photos. It has a web dashboard where you can see and edit your data directly. The free tier is enough here. |
-| Hosting | **Vercel** | Connect the GitHub repo and every push deploys automatically. Free for personal projects. |
+| Storage, test version | **On the phone** (browser database, via the Dexie library) | Data and photos are saved on your phone, with no accounts needed. |
+| Storage, shared version (later) | **Supabase** | One hosted service that provides a database, login, and photo storage, so you and Sydney see the same garden. It replaces the phone storage once you're happy with the app. Free tier. |
+| Hosting | **GitHub Pages** | Free website hosting from the GitHub account you already have. Every push to the repo updates the app. |
 | "Install on phone" | **PWA** (Progressive Web App) | Lets you add the site to your home screen like an app and open the camera from it. No app store needed. |
 | Photo analysis (Phase 3) | **Claude API** (`claude-opus-5-5`, with image input) | Reads a photo and answers questions such as "what growth stage is this tomato in?". Pricing is per use, likely a few cents a month for a home garden. A cheaper model can be swapped in later if you want. |
 
@@ -174,14 +175,24 @@ Chosen to be beginner-friendly, low-cost (free tiers cover a single home gardene
 
 ## 6. Phased roadmap
 
-### Phase 1 (MVP): "What's planted where"
-Goal: replace the notebook or spreadsheet. Use it for one season.
-- Invite-only login for the two users.
+### Phase 1 (MVP): "What's planted where", phone-only test
+Goal: try the app on your phone with real beds and plantings before committing to accounts.
+- All data and photos stored on your phone. No login, and no accounts beyond GitHub.
+- Hosted on GitHub Pages. Open the link on your phone and choose "Add to Home Screen".
+- An **Export / Import backup** button that saves everything to a file you can keep in iCloud, Google Drive, or email.
+- Photos are shrunk when saved (to about 1600 px wide), so the phone's storage doesn't fill up.
+- All app code talks to storage through one small "data layer", so swapping in Supabase later only changes that one part.
 - The 19 beds and areas above, pre-loaded, with editing and archiving.
 - Pre-filled crop library with your 9 crop types, and a place to add your varieties.
 - Add plantings (variety, method, season, dates, stage set by hand, notes), including seedlings indoors that don't have a bed yet.
 - Upload photos to a planting or bed, shown as a simple timeline.
 - Phone-first layout, installable as a PWA.
+
+### Phase 1.5: Share with Sydney
+Do this once the test version feels right.
+- Create a free Supabase account (about 15 minutes, guided).
+- Switch the data layer to Supabase and add invite-only login for two users.
+- Import your phone backup, so nothing entered during testing is lost.
 
 ### Phase 2: Calendar and tips
 - Frost-date settings.
@@ -208,7 +219,8 @@ Goal: replace the notebook or spreadsheet. Use it for one season.
 
 | Topic | Decision |
 |---|---|
-| Users | Two people share one garden, and both can edit. Login is invite-only. |
+| Users | **Test version:** just you, on your phone. **Shared version (Phase 1.5):** two people share one garden, both can edit, and login is invite-only. |
+| Hosting / accounts | GitHub Pages only (an account you already have). Supabase is added in Phase 1.5, and Vercel isn't needed. |
 | Beds | 19 spaces, pre-loaded (see the table at the top). |
 | Varieties | Tracked per planting, each with its own days to maturity and timing. |
 | Seed starting | Both indoor starts and bought transplants. Seedlings can exist before they have a bed. |
@@ -226,4 +238,5 @@ These don't block starting Phase 1, and sensible defaults are used until you ans
 2. **Reminders:** Do you want push notifications, or is the "Today" screen enough? Default: Today screen only, with reminders in Phase 4.
 3. **Past data:** Is there any old spreadsheet or photo history to import? Default: start fresh.
 4. **Bed names:** Do you want real names (e.g. "Wall Bed – Top Tier") instead of numbers? Default: numbered names, which you can rename any time.
-5. **Accounts:** You'll need free GitHub, Supabase, and Vercel accounts. I'll walk you through each when we start building.
+5. **Phone:** iPhone or Android? iPhones can clear website storage for apps that aren't added to the home screen, so on iPhone, install it to the home screen and export backups regularly.
+6. **Repo visibility:** GitHub Pages is free for public repos (anyone could read the code, but **not** your garden data, which stays on your phone). Hosting from a private repo needs a paid GitHub plan. Is a public repo OK?

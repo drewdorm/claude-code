@@ -225,7 +225,9 @@ Do this once the test version feels right.
 | Varieties | Tracked per planting, each with its own days to maturity and timing. |
 | Seed starting | Both indoor starts and bought transplants. Seedlings can exist before they have a bed. |
 | Fall garden | Yes. The calendar adds fall sowing windows. |
-| Offline use | Not needed, because signal is reliable. This keeps the app simpler. |
+| Offline use | Not a requirement, because signal is reliable. The test version works offline anyway, since everything is stored on the phone. |
+| Phone | **iPhone (Safari).** See "iPhone setup" below. |
+| Code visibility | **Public repo** (required for free GitHub Pages). Only the code is public. Garden data and photos never go into the repo. |
 | Tips | Starter tips will be written from general Southeast / UGA Extension guidance, and you can edit them. |
 | Photo AI | Planned for Phase 3, using the default setup in the tech stack. The cost should be pennies a month, and a cheaper model can be swapped in if you want. |
 | Approach | Personal use, so the most efficient choice wins: one shared garden, no multi-tenant features, free tiers, and no app-store builds. |
@@ -238,5 +240,14 @@ These don't block starting Phase 1, and sensible defaults are used until you ans
 2. **Reminders:** Do you want push notifications, or is the "Today" screen enough? Default: Today screen only, with reminders in Phase 4.
 3. **Past data:** Is there any old spreadsheet or photo history to import? Default: start fresh.
 4. **Bed names:** Do you want real names (e.g. "Wall Bed – Top Tier") instead of numbers? Default: numbered names, which you can rename any time.
-5. **Phone:** iPhone or Android? iPhones can clear website storage for apps that aren't added to the home screen, so on iPhone, install it to the home screen and export backups regularly.
-6. **Repo visibility:** GitHub Pages is free for public repos (anyone could read the code, but **not** your garden data, which stays on your phone). Hosting from a private repo needs a paid GitHub plan. Is a public repo OK?
+5. **Repo name:** this plan lives in the `claude-code` repo, so the app would be at `drewdorm.github.io/claude-code`. Should we keep it here, or should you create a new public repo (e.g. `garden`) for a nicer link? Default: create `garden` and move `PLAN.md` there. It takes one minute on github.com, and I'll walk you through it.
+
+## 9. iPhone setup (test version)
+
+Built into Phase 1:
+
+- **Open the link in Safari**, then tap Share → **Add to Home Screen**. This matters: iPhones can delete stored data for websites that aren't installed this way and haven't been opened for a while.
+- The app asks the phone to keep its storage permanently (a browser setting called "persistent storage") and shows on the Settings screen whether that was granted.
+- **Backup reminder:** if you haven't exported a backup in 7 days, the Today screen shows a banner. One tap saves the file to the iPhone's **Files** app or iCloud Drive.
+- **Camera:** "+ Photo" opens the camera directly, or lets you pick from Photos. The app converts and shrinks images to JPEG (about 1600 px), so iPhone HEIC photos and storage size aren't a problem.
+- Built for one-handed use: large tap targets and a bottom tab bar (Today, Beds, Calendar, + Photo, More). It also respects the iPhone's notch and home-bar spacing.
